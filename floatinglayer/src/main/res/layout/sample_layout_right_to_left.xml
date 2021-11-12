@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cc.ibooker.floatinglayer.sample.view.RightToLeftView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="50dp"
+    android:background="@drawable/sample_bg_ffffff_r_dp40"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="20dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/sample_bg_000000" />
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_gravity="center_vertical|end"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/sample_icon_right_to_left" />
+
+        <TextView
+            android:id="@+id/tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="测试数据"
+            android:textSize="20sp" />
+
+    </FrameLayout>
+
+</cc.ibooker.floatinglayer.sample.view.RightToLeftView>

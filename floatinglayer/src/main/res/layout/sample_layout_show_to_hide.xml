@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cc.ibooker.floatinglayer.sample.view.ShowToHideView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="50dp"
+    android:layout_height="50dp">
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:contentDescription="@null"
+        android:src="@drawable/sample_icon_show_to_hide" />
+
+    <TextView
+        android:id="@+id/tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="+1"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+</cc.ibooker.floatinglayer.sample.view.ShowToHideView>
