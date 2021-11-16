@@ -97,7 +97,6 @@ public class FloatingLayer implements IFloatingLayer {
                     && !activity.isDestroyed()
                     && activity.getWindow() != null
                     && sContainer.getParent() == null
-                    && activity.getWindow().isActive()
                     && !sContainer.isAttachedToWindow()) {
                 Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
                     @Override
