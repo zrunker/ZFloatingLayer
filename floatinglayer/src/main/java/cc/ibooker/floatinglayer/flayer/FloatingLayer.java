@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.os.Looper;
+import android.os.MessageQueue;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.WindowManager;
@@ -95,16 +96,16 @@ public class FloatingLayer implements IFloatingLayer {
             if (!activity.isFinishing()
                     && !activity.isDestroyed()
                     && activity.getWindow() != null
-                    && sContainer.getParent() == null) {
-                if (activity.getWindow().isActive()
-                        && !sContainer.isAttachedToWindow()) {
-                    this.wm.addView(sContainer, wParams);
-                } else {
-                    Looper.myQueue().addIdleHandler(() -> {
-                        show();
+                    && sContainer.getParent() == null
+                    && activity.getWindow().isActive()
+                    && !sContainer.isAttachedToWindow()) {
+                Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
+                    @Override
+                    public boolean queueIdle() {
+                        FloatingLayer.this.wm.addView(sContainer, wParams);
                         return false;
-                    });
-                }
+                    }
+                });
             }
         }
     }
