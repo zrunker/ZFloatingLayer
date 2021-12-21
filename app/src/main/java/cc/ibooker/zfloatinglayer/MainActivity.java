@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.tv_hide).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                proxy.show();
+                proxy.hide();
             }
         });
 
