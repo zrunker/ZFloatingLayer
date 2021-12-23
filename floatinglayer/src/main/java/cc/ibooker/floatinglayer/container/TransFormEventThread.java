@@ -22,6 +22,8 @@ import cc.ibooker.floatinglayer.executor.FloatingMsg;
 import cc.ibooker.floatinglayer.flayer.FLayerConfig;
 import cc.ibooker.floatinglayer.location.LStrategyFactory;
 import cc.ibooker.floatinglayer.location.strategy.AbsStrategy;
+import cc.ibooker.floatinglayer.observer.IViewRefreshObserver;
+import cc.ibooker.floatinglayer.observer.ViewRefreshObserver;
 import cc.ibooker.floatinglayer.util.Config;
 import cc.ibooker.floatinglayer.vholder.ViewState;
 
@@ -32,7 +34,7 @@ import cc.ibooker.floatinglayer.vholder.ViewState;
  * @author: zoufengli01
  * @create: 2021-11-11 12:30
  **/
-public class TransFormEventThread {
+public class TransFormEventThread implements IViewRefreshObserver {
     /*浮层配置信息*/
     private final FLayerConfig fLayerConfig;
     /*处理Event子线程，用于计算View显示位置*/
@@ -45,6 +47,23 @@ public class TransFormEventThread {
     private final Set<FloatingBean> eventSet;
     /*锁，处理Iterator*/
     private final Object lock = new Object();
+
+    @Override
+    public void onRefresh(View view) {
+        if (view != null) {
+            synchronized (lock) {
+                filter();
+                // 更新bitmap
+                for (FloatingBean item : eventSet) {
+                    View targetView = item.vFloating.view;
+                    if (targetView == view) {
+                        item.bitmap = viewToBitmap(view);
+                        return;
+                    }
+                }
+            }
+        }
+    }
 
     /*自定义Handler*/
     private static class THandler extends Handler {
@@ -112,6 +131,7 @@ public class TransFormEventThread {
 
     public TransFormEventThread(@NonNull FLayerConfig fLayerConfig,
                                 long timeDiff) {
+        ViewRefreshObserver.getInstance().registerListener(this);
         this.fLayerConfig = fLayerConfig;
         this.timeDiff = timeDiff;
         this.eventSet = Collections.synchronizedSet(new HashSet<>());
@@ -122,7 +142,7 @@ public class TransFormEventThread {
      * 构建HandlerThread
      */
     private void initHTread() {
-        if (tTread == null) {
+        if (tTread == null || !tTread.isAlive()) {
             tTread = new HandlerThread("TransFormEventThread");
             tTread.start();
         }
@@ -137,21 +157,49 @@ public class TransFormEventThread {
      * @param view 目标View
      */
     private Bitmap viewToBitmap(@NonNull View view) {
-        // 设置测量模式
-        int measureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-        view.measure(measureSpec, measureSpec);
+        try {
+            // 设置测量模式
+            int measureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+            view.measure(measureSpec, measureSpec);
 
-        int measuredWidth = view.getMeasuredWidth();
-        int measuredHeight = view.getMeasuredHeight();
+            int measuredWidth = view.getMeasuredWidth();
+            int measuredHeight = view.getMeasuredHeight();
 
-        view.layout(0, 0, measuredWidth, measuredHeight);
+            view.layout(0, 0, measuredWidth, measuredHeight);
 
-        Bitmap bitmap = Bitmap.createBitmap(measuredWidth, measuredHeight, Bitmap.Config.ARGB_4444);
-        Canvas canvas = new Canvas(bitmap);
-//        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        view.draw(canvas);
+            Bitmap bitmap = Bitmap.createBitmap(measuredWidth, measuredHeight, Bitmap.Config.ARGB_4444);
+            Canvas canvas = new Canvas(bitmap);
+//            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            view.draw(canvas);
 
-        return bitmap;
+            return bitmap;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // 过滤过期事件
+    private void filter() {
+        synchronized (lock) {
+            Iterator<FloatingBean> iterator = eventSet.iterator();
+            while (iterator.hasNext()) {
+                FloatingBean item = iterator.next();
+                if (item == null
+                        || item.fromX <= item.toX
+                        || item.showTime >= item.animDuration
+                        || item.bitmap == null) {
+                    iterator.remove();
+                    if (item != null) {
+                        if (item.vFloating != null) {
+                            item.vFloating.updateState(ViewState.END);
+                        }
+                        if (item.bitmap != null) {
+                            item.bitmap = null;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -162,18 +210,7 @@ public class TransFormEventThread {
     private void addSet(FloatingBean fEvent) {
         if (fEvent != null) {
             synchronized (lock) {
-                Iterator<FloatingBean> iterator = eventSet.iterator();
-                while (iterator.hasNext()) {
-                    FloatingBean item = iterator.next();
-                    if (item == null
-                            || item.fromX <= item.toX
-                            || item.bitmap == null) {
-                        iterator.remove();
-                        if (item != null) {
-                            item.vFloating.updateState(ViewState.END);
-                        }
-                    }
-                }
+                filter();
                 // 修改View状态
                 fEvent.vFloating.updateState(ViewState.START);
                 // 添加到集合
@@ -216,10 +253,8 @@ public class TransFormEventThread {
      */
     public void transformMsg(Message msg) {
         if (msg != null) {
-            if (tHandler == null) {
-                initHTread();
-            }
-            tHandler.sendMessage(msg);
+            initHTread();
+            this.tHandler.sendMessage(msg);
         }
     }
 

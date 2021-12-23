@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import cc.ibooker.floatinglayer.FloatingService;
 import cc.ibooker.floatinglayer.flayer.FLayerRegion;
+import cc.ibooker.floatinglayer.observer.ViewRefreshObserver;
 import cc.ibooker.floatinglayer.util.Config;
 import cc.ibooker.floatinglayer.util.ScreenUtil;
 import cc.ibooker.floatinglayer.vholder.IViewHolder;
@@ -77,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
 //            floatingService.send(iEvent);
 
             proxy.send("测试-++=" + i);
+
+            // 如果是异步任务可以采用 ViewRefreshObserver 通知刷新
+            // ViewRefreshObserver.getInstance().onRefresh(view);
         }
 
     }
